@@ -60,3 +60,15 @@ export const getMovieDetails = async (movieId) => {
   const data = await response.json();
   return data;
 };
+export const getMovieCredits = async (movieId) => {
+  try {
+    const response = await fetch(
+      `https://api.themoviedb.org/3/movie/${movieId}/credits?api_key=e45942ec07b5e46d492419a29a567ae8&language=en-US`
+    );
+    if (!response.ok) throw new Error("Failed to fetch movie credits");
+    const data = await response.json();
+    return data.cast.slice(0, 5); // Get top 5 cast members
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
