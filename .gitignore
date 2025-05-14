@@ -22,4 +22,5 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-api.js
+movie-night/src/Services/api.js
+src/Services/api.js
