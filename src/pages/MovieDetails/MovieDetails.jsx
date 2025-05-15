@@ -15,7 +15,16 @@ const MovieDetails = () => {
 
   // Check if movie is in favorites
   useEffect(() => {
-    const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+    let favorites = [];
+    try {
+      favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+      if (!Array.isArray(favorites)) {
+        favorites = [];
+      }
+    } catch (e) {
+      console.error("Invalid favorites in localStorage:", e);
+    }
+    console.log("Favorites from localStorage:", favorites);
     setIsFavorite(favorites.some((fav) => fav.id === Number(movieId)));
   }, [movieId]);
 
@@ -43,10 +52,25 @@ const MovieDetails = () => {
 
   // Handle adding/removing from favorites
   const toggleFavorite = () => {
-    const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+    if (!movie) {
+      console.warn("Cannot toggle favorite: movie data not loaded");
+      return;
+    }
+    console.log("Toggling favorite, current isFavorite:", isFavorite);
+    let favorites = [];
+    try {
+      favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+      if (!Array.isArray(favorites)) {
+        favorites = [];
+      }
+    } catch (e) {
+      console.error("Invalid favorites in localStorage:", e);
+    }
+    console.log("Current favorites:", favorites);
     if (isFavorite) {
       const updatedFavorites = favorites.filter((fav) => fav.id !== Number(movieId));
       localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
+      console.log("Removed favorite, new favorites:", updatedFavorites);
       setIsFavorite(false);
     } else {
       const favoriteMovie = {
@@ -56,6 +80,7 @@ const MovieDetails = () => {
       };
       favorites.push(favoriteMovie);
       localStorage.setItem("favorites", JSON.stringify(favorites));
+      console.log("Added favorite, new favorites:", favorites);
       setIsFavorite(true);
     }
   };
@@ -153,7 +178,10 @@ const MovieDetails = () => {
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={toggleFavorite}
-                    className={`absolute top-4 right-4 p-3 rounded-full ${isFavorite ? "bg-red-600" : "bg-gray-500"} text-white shadow-md`}
+                    disabled={!movie || loading}
+                    className={`absolute top-4 right-4 p-3 rounded-full ${
+                      isFavorite ? "bg-red-600" : "bg-gray-500"
+                    } text-white shadow-md ${!movie || loading ? "opacity-50 cursor-not-allowed" : ""}`}
                     aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
                     title={isFavorite ? "Remove from favorites" : "Add to favorites"}
                   >

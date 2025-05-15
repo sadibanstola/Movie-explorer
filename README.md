@@ -18,6 +18,8 @@ This is a Netflix-style movie browsing application built with **React**, **Frame
 
 ![Category](./public/Category.png) 
 
+![Fav](./public/Fav.png) 
+
 ## 🛠️ Tech Stack
 
 - React

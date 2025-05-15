@@ -5,13 +5,44 @@ import MovieCard from "../../Components/Card/MovieCard";
 
 const Favorites = () => {
   const [favorites, setFavorites] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [isDarkMode] = useState(() => localStorage.getItem("theme") !== "light");
   const navigate = useNavigate();
 
   useEffect(() => {
-    const savedFavorites = JSON.parse(localStorage.getItem("favorites")) || [];
-    setFavorites(savedFavorites);
+    const updateFavorites = () => {
+      setLoading(true);
+      try {
+        const savedFavorites = JSON.parse(localStorage.getItem("favorites")) || [];
+        if (!Array.isArray(savedFavorites)) {
+          console.warn("Favorites is not an array, resetting to empty array");
+          setFavorites([]);
+        } else {
+          setFavorites(savedFavorites);
+        }
+      } catch (e) {
+        console.error("Error parsing favorites from localStorage:", e);
+        setFavorites([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    updateFavorites();
+    window.addEventListener("storage", updateFavorites);
+    window.addEventListener("favoritesUpdated", updateFavorites);
+    return () => {
+      window.removeEventListener("storage", updateFavorites);
+      window.removeEventListener("favoritesUpdated", updateFavorites);
+    };
   }, []);
+
+  const removeFavorite = (movieId) => {
+    const updatedFavorites = favorites.filter((fav) => fav.id !== movieId);
+    localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
+    setFavorites(updatedFavorites);
+    // Dispatch event to notify other components
+    window.dispatchEvent(new Event("favoritesUpdated"));
+  };
 
   const handleBack = () => {
     navigate("/");
@@ -21,7 +52,15 @@ const Favorites = () => {
     <div className={`min-h-screen ${isDarkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"}`}>
       <div className="container mx-auto px-4 sm:px-6 py-20">
         <h1 className="text-4xl font-bold mb-8">Your Favorite Movies</h1>
-        {favorites.length === 0 ? (
+        {loading ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center p-4"
+          >
+            <div className={`animate-spin rounded-full h-10 w-10 border-t-4 ${isDarkMode ? "border-red-600" : "border-blue-500"} mx-auto`}></div>
+          </motion.div>
+        ) : favorites.length === 0 ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -40,7 +79,7 @@ const Favorites = () => {
             </motion.button>
           </motion.div>
         ) : (
-          <MovieCard title="Your Favorites" movies={favorites} />
+          <MovieCard title="Your Favorites" movies={favorites} onRemoveFavorite={removeFavorite} />
         )}
       </div>
     </div>
